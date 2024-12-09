@@ -25,8 +25,7 @@ export default function ToDoList() {
     const { tasks, setTasks } = useContext(TodoContext);
 
     useEffect(() => {
-        setTasks(JSON.parse(localStorage.getItem("todo")
-        ))
+        setTasks(JSON.parse(localStorage.getItem("todo")) ?? [])
     }, [])
 
     function AddNewTask() {
@@ -38,7 +37,7 @@ export default function ToDoList() {
 
         const updatedStorage = [...tasks, newTask];
         setTasks(updatedStorage);
-        localStorage.setItem("todo", JSON.stringify(updatedStorage) ?? []);
+        localStorage.setItem("todo", JSON.stringify(updatedStorage));
         setTaskInput("");
     }
 
