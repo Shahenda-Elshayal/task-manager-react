@@ -5,142 +5,41 @@ import IconButton from '@mui/material/IconButton';
 import CheckIcon from '@mui/icons-material/Check';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { useContext, useState } from 'react';
-import { TodoContext } from '../contexts/TodoContext';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
+import { useState } from 'react';
+import { useToast } from '../contexts/ToastContext';
+import { useTodo } from '../contexts/TodoContext';
 
 
-export default function Tasks({ task }) {
+export default function Tasks({ task, openDeleteBtn, openEditBtn }) {
 
-    const { tasks, setTasks } = useContext(TodoContext);
+    const { tasks, dispatch } = useTodo()
+    const { showHideToast } = useToast();
 
     function handleCheckButton() {
-        const newOne = tasks.map((t) =>
-            t.id === task.id ? { ...t, isComplete: !t.isComplete } : t
-        )
-        setTasks(newOne);
-        localStorage.setItem("todo", JSON.stringify(newOne));
+        dispatch({ type: "toggleChecked", payload: task });
+
+        if (!task.isComplete) {
+            showHideToast("Task completed! Great job.");
+        }
+
+        else {
+            showHideToast("Moved back to pending.");
+        }
     }
 
-    const [openDelete, setOpenDelete] = useState(false);
-    const [openEdit, setOpenEdit] = useState(false);
     const [editTask, setEditTask] = useState({ title: task.title, details: task.details });
 
     function handleDelete() {
-        setOpenDelete(true)
+        openDeleteBtn(task)
     }
+
     function handleEdit() {
-        setOpenEdit(true)
+        openEditBtn(task)
     }
 
-    function handleCloseDelete() {
-        setOpenDelete(false)
-    }
-    function handleCloseEdit() {
-        setOpenEdit(false)
-    }
-
-    function handleDeleteConfirm() {
-        const updatedTask = tasks.filter((t) => {
-            return t.id !== task.id;
-        })
-        setTasks(updatedTask);
-        localStorage.setItem("todo", JSON.stringify(updatedTask));
-    }
-
-    function handleEditConfirm() {
-        const updatedValue = tasks.map((t) => {
-            if (t.id === task.id) {
-                return { ...t, title: editTask.title, details: editTask.details }
-            }
-            else
-                return t
-        })
-        setTasks(updatedValue);
-        setOpenEdit(false)
-        localStorage.setItem("todo", JSON.stringify(updatedValue));
-    }
 
     return (
         <>
-            {/* Start Dialog for delete */}
-            <Dialog
-                open={openDelete}
-                onClose={handleCloseDelete}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    {"Are you sure you want to delete this task?"}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Deleting this task is irreversible. Please confirm if you'd like to proceed.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDelete}>Cancel</Button>
-                    <Button onClick={handleDeleteConfirm} autoFocus>
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            {/* End Dialog for delete */}
-
-            {/* Start Dialog for edit */}
-            <Dialog
-                fullWidth
-                open={openEdit}
-                onClose={handleCloseEdit}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    {"Edit the title and details of your task"}
-                </DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        required
-                        margin="dense"
-                        label="Task title"
-                        type="text"
-                        value={editTask.title}
-                        fullWidth
-                        variant="standard"
-                        onChange={(e) => {
-                            setEditTask({ ...editTask, title: e.target.value })
-                        }}
-                    />
-                    <TextField
-                        autoFocus
-                        required
-                        label="Task details"
-                        type="text"
-                        value={editTask.details}
-                        fullWidth
-                        variant="standard"
-                        style={{ marginTop: "10px" }}
-                        onChange={(e) => {
-                            setEditTask({ ...editTask, details: e.target.value })
-                        }}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseEdit}>Cancel</Button>
-                    <Button onClick={handleEditConfirm} autoFocus>
-                        Confirm
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            {/* End Dialog for edit */}
-
             <Box sx={{ flexGrow: 1, flexDirection: "column", }} className="task-card">
                 <Grid container spacing={0} className="inner-card" sx={{
                     marginTop: "20px",
